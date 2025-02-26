@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Market News</title>
+    <link rel="stylesheet" href="/styles.css"> <!-- Link your CSS -->
+</head>
+<body>
+    <div class="container">
+        <h1>Stock Market News</h1>
+
+        {{#each news}}
+            <div class="news-card">
+                <h3>{{title}}</h3>
+                <p>{{description}}</p>
+                <a href="{{url}}" target="_blank">Read More</a>
+                <small>Source: {{source}} | {{published_at}}</small>
+            </div>
+        {{/each}}
+
+    </div>
+</body>
+</html>
