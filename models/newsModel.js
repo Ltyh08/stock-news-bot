@@ -1,4 +1,4 @@
-const db = require('../config/db'); // Import DB connection
+const db = require('../../config/db'); // Import DB connection
 
 // Create "news" table if it doesn't exist
 const createNewsTable = () => {
