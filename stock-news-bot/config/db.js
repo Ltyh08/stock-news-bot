@@ -5,7 +5,7 @@ require('dotenv').config(); // Load environment variables
 const db = mysql.createConnection({
     host: process.env.DB_HOST || 'localhost',
     user: process.env.DB_USER || 'root',
-    password: process.env.DB_PASS || 'Jxjekndkskdk1234',
+    password: process.env.DB_PASS || '',
     database: process.env.DB_NAME || 'stock_news_db'
 });
 
