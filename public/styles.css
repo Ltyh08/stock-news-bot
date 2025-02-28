@@ -1,24 +1,73 @@
+/* General Styles */
 body {
     font-family: Arial, sans-serif;
-    background: #f5f5f5;
-    text-align: center;
+    background: #f8f9fa;
 }
 
+/* Container */
 .container {
-    max-width: 800px;
+    max-width: 1200px;
     margin: auto;
-    padding: 20px;
-    background: white;
-    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    padding-top: 20px;
 }
 
-.news-card {
-    border: 1px solid #ddd;
-    padding: 10px;
-    margin: 10px 0;
+/* News Card */
+.news-item {
     background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    height: 100%; /* Make all cards the same height */
+    border: 1px solid #ddd; /* Remove box-shadow, use a subtle border */
 }
 
+/* News Title */
+.news-title {
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: #343a40;
+    flex-grow: 1; /* Push other content down */
+}
+
+/* News Source */
+.news-source {
+    font-size: 0.9rem;
+    color: #6c757d;
+}
+
+/* Description */
+.news-description {
+    font-size: 1rem;
+    margin-top: 5px;
+    color: #212529;
+    flex-grow: 1;
+}
+
+/* Read More Link */
+.read-more {
+    text-decoration: none;
+    font-weight: bold;
+    color: #007bff;
+}
+
+/* News Image */
+.news-image {
+    width: 100%;
+    height: 180px; /* Ensure uniform height */
+    object-fit: cover; /* Crop image to fit */
+    border-radius: 5px;
+}
+
+/* News Card Flexbox */
+.news-card {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+/* Remove default link styles */
 a {
     color: blue;
     text-decoration: none;

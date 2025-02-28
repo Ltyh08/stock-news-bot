@@ -1,4 +1,4 @@
-const db = require('../../config/db'); // Import DB connection
+const db = require('../config/db'); // Import DB connection
 
 // Create "news" table if it doesn't exist
 const createNewsTable = () => {
@@ -19,12 +19,28 @@ const createNewsTable = () => {
 };
 
 // Function to Insert News Article
-const insertNews = (title, description, url, source, publishedAt) => {
-    const sql = "INSERT INTO news (title, description, url, source, published_at) VALUES (?, ?, ?, ?, ?)";
-    db.query(sql, [title, description, url, source, publishedAt], (err) => {
-        if (err) console.error("Insert News Failed:", err);
+const insertNews = (title, description, url, source, publishedAt, imageUrl) => {
+    const checkSql = "SELECT COUNT(*) AS count FROM news WHERE url = ?";
+    
+    db.query(checkSql, [url], (err, results) => {
+        if (err) {
+            console.error("Error checking for duplicate news:", err);
+            return;
+        }
+
+        if (results[0].count > 0) {
+            console.log(`⚠️ Duplicate news detected, skipping: ${title}`);
+            return;
+        }
+
+        // Insert the news if it's not a duplicate
+        const sql = "INSERT INTO news (title, description, url, source, published_at, image_url) VALUES (?, ?, ?, ?, ?, ?)";
+        db.query(sql, [title, description, url, source, publishedAt, imageUrl], (err) => {
+            if (err) console.error("Insert News Failed:", err);
+        });
     });
 };
+
 
 // Function to Fetch News
 const getNews = (callback) => {
