@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
+const cheerio = require('cheerio');
 const cron = require('node-cron');
 const { engine } = require('express-handlebars');
 const db = require('./config/db'); // Import DB Config
@@ -28,6 +29,30 @@ function getRandomFallbackImage() {
     return `imgs/SM${randomIndex}.jpeg`; // Adjust the path based on your imgs folder setup
 }
 
+async function extractSnippetFromUrl(url) {
+    try {
+        const { data } = await axios.get(url, {
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)'
+            }
+        });
+
+        const $ = cheerio.load(data);
+
+        const metaDesc = $('meta[name="description"]').attr('content') ||
+                         $('meta[property="og:description"]').attr('content') ||
+                         $('meta[name="twitter:description"]').attr('content');
+
+        const firstParagraph = $('article p').first().text() ||
+                               $('p').first().text();
+
+        return (metaDesc || firstParagraph || "No description available.").trim();
+    } catch (error) {
+        console.error(`❌ Failed to fetch snippet from ${url}:`, error.message);
+        return "No description available.";
+    }
+}
+
 // ✅ Fetch Stock News from API & Store in DB
 async function fetchStockNews() {
     try {
@@ -43,7 +68,7 @@ async function fetchStockNews() {
 
         const response = await axios.request(options);
 
-        console.log("✅ Full API Response:", JSON.stringify(response.data, null, 2)); // ✅ Log API response
+        console.log("✅ Full API Response:", JSON.stringify(response.data, null, 2));
 
         if (!response.data || !response.data.news) {
             console.error("❌ No news data received from Yahoo Finance API");
@@ -53,35 +78,39 @@ async function fetchStockNews() {
         const articles = response.data.news.slice(0, 10);
         console.log(`🔄 Found ${articles.length} new articles`);
 
-        articles.forEach(article => {
+        for (const article of articles) {
             console.log(`📰 Title: ${article.title}`);
             console.log(`🔗 URL: ${article.link}`);
             console.log(`📅 Published: ${article.providerPublishTime}`);
+
+            const description = article.summary && article.summary.length > 0
+                ? article.summary
+                : await extractSnippetFromUrl(article.link);
 
             const publishedAt = article.providerPublishTime
                 ? new Date(article.providerPublishTime * 1000)
                 : new Date();
 
-            // Check if the article has an image, otherwise assign a random fallback image
             const imageUrl = (article.thumbnail && article.thumbnail.resolutions.length > 0)
                 ? article.thumbnail.resolutions[0].url
-                : getRandomFallbackImage(); // ✅ Random fallback image
+                : getRandomFallbackImage();
 
             insertNews(
                 article.title || "No Title",
-                article.summary || "No Description",
+                description,
                 article.link || "No URL",
                 article.publisher || "Yahoo Finance",
                 publishedAt,
                 imageUrl
             );
-        });
+        }
 
         console.log("✅ News updated in database!");
     } catch (error) {
         console.error("❌ Error fetching Yahoo Finance news:", error);
     }
 }
+
 
 // ✅ Schedule News Fetching Every 6 Hours
 cron.schedule("0 */6 * * *", fetchStockNews);

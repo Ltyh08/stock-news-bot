@@ -10,6 +10,7 @@ const createNewsTable = () => {
             url VARCHAR(255) NOT NULL,
             source VARCHAR(100),
             published_at DATETIME NOT NULL
+            image_url VARCHAR(255) NOT NULL
         )
     `;
     db.query(sql, (err) => {
