@@ -95,13 +95,16 @@ async function fetchStockNews() {
                 ? article.thumbnail.resolutions[0].url
                 : getRandomFallbackImage();
 
+            const relatedTickers = article.relatedTickers?.join(', ') || '';
+
             insertNews(
                 article.title || "No Title",
                 description,
                 article.link || "No URL",
                 article.publisher || "Yahoo Finance",
                 publishedAt,
-                imageUrl
+                imageUrl,
+                relatedTickers
             );
         }
 
@@ -134,6 +137,26 @@ app.get('/', (req, res) => {
         res.render('home', { news: results });
     });
 });
+
+app.get('/api/news/search?', (req, res) => {
+    const { ticker } = req.query;
+
+    const sql = `
+        SELECT * FROM news 
+        WHERE related_tickers LIKE ? 
+        ORDER BY published_at DESC
+    `;
+
+    db.query(sql, [`%${ticker}%`], (err, results) => {
+        if (err) {
+            console.error("Error searching news:", err);
+            res.status(500).json({ error: 'Failed to search news' });
+        } else {
+            res.json(results);
+        }
+    });
+});
+
 
 fetchStockNews(); // Fetch stock news when the server starts
 
