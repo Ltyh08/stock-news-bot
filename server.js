@@ -7,6 +7,8 @@ const cron = require('node-cron');
 const { engine } = require('express-handlebars');
 const db = require('./config/db'); // Import DB Config
 const { createNewsTable, insertNews, getNews } = require('./models/newsModel'); // Import Model
+const expressHandlebars = require('express-handlebars');
+
 
 const app = express();
 app.use(cors());
@@ -14,8 +16,19 @@ app.use(express.json());
 app.use(express.static('public'));
 app.use('/imgs', express.static(__dirname + '/imgs')); // Serve static images
 
+
+const hbs = expressHandlebars.create({
+    extname: '.hbs',
+    helpers: {
+        trimWords: function (text, count) {
+            if (!text) return "No Description";
+            const words = text.trim().split(/\s+/);
+            return words.length <= count ? text : words.slice(0, count).join(" ") + "...";
+        }
+    }
+});
 // Set up Handlebars
-app.engine('hbs', engine({ extname: '.hbs' }));
+app.engine('hbs', hbs.engine);
 app.set('view engine', 'hbs');
 app.set('views', './views');
 
@@ -28,6 +41,8 @@ function getRandomFallbackImage() {
     const randomIndex = Math.floor(Math.random() * totalImages) + 1; // Random number from 1 to 9
     return `imgs/SM${randomIndex}.jpeg`; // Adjust the path based on your imgs folder setup
 }
+
+
 
 async function extractSnippetFromUrl(url) {
     try {
@@ -159,6 +174,7 @@ app.get('/api/news/search?', (req, res) => {
 
 
 fetchStockNews(); // Fetch stock news when the server starts
+
 
 // ✅ Start Server
 app.listen(5000, () => {
