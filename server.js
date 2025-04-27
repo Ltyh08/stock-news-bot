@@ -8,6 +8,11 @@ const { engine } = require('express-handlebars');
 const db = require('./config/db'); // Import DB Config
 const { createNewsTable, insertNews, getNews } = require('./models/newsModel'); // Import Model
 const expressHandlebars = require('express-handlebars');
+const Sentiment = require('sentiment');
+const sentimentAnalyzer = new Sentiment();
+const Handlebars = require('handlebars');
+
+
 
 
 const app = express();
@@ -15,6 +20,7 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
 app.use('/imgs', express.static(__dirname + '/imgs')); // Serve static images
+
 
 
 const hbs = expressHandlebars.create({
@@ -34,6 +40,11 @@ app.set('views', './views');
 
 // ✅ Ensure News Table Exists
 createNewsTable();
+
+Handlebars.registerHelper('eq', function(a, b) {
+    return a === b;
+  });
+  
 
 // Function to select a random fallback image
 function getRandomFallbackImage() {
@@ -67,6 +78,7 @@ async function extractSnippetFromUrl(url) {
         return "No description available.";
     }
 }
+
 
 // ✅ Fetch Stock News from API & Store in DB
 async function fetchStockNews() {
@@ -112,6 +124,16 @@ async function fetchStockNews() {
 
             const relatedTickers = article.relatedTickers?.join(', ') || '';
 
+            
+            // 👉 Sentiment analysis
+            const sentimentResult = sentimentAnalyzer.analyze(description || "");
+            let sentiment = "Neutral";
+            if (sentimentResult.score > 0) {
+                sentiment = "Positive";
+            } else if (sentimentResult.score < 0) {
+                sentiment = "Negative";
+            }
+
             insertNews(
                 article.title || "No Title",
                 description,
@@ -119,7 +141,8 @@ async function fetchStockNews() {
                 article.publisher || "Yahoo Finance",
                 publishedAt,
                 imageUrl,
-                relatedTickers
+                relatedTickers,
+                sentiment
             );
         }
 
@@ -153,7 +176,7 @@ app.get('/', (req, res) => {
     });
 });
 
-app.get('/api/news/search?', (req, res) => {
+app.get('/api/news/search', (req, res) => {
     const { ticker } = req.query;
 
     const sql = `
@@ -172,6 +195,15 @@ app.get('/api/news/search?', (req, res) => {
     });
 });
 
+app.get('/api/refresh-news', async (req, res) => {
+    try {
+        await fetchStockNews();
+        res.json({ message: "✅ News refreshed successfully!" });
+    } catch (error) {
+        console.error("❌ Failed to refresh news:", error);
+        res.status(500).json({ error: "Failed to refresh news" });
+    }
+});
 
 fetchStockNews(); // Fetch stock news when the server starts
 

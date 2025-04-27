@@ -132,3 +132,16 @@ body.dark-mode .btn-outline-secondary:hover {
     background-color: #444;
     border-color: #888;
 }
+
+.sentiment-positive {
+    color: green;
+}
+
+.sentiment-negative {
+    color: red;
+}
+
+.sentiment-neutral {
+    color: gray;
+}
+

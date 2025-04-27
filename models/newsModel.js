@@ -11,7 +11,8 @@ const createNewsTable = () => {
             source VARCHAR(100),
             published_at DATETIME NOT NULL,
             image_url VARCHAR(255) NOT NULL,
-            related_tickers VARCHAR(255)  -- 🆕 related tickers support
+            related_tickers VARCHAR(255),
+            sentiment VARCHAR(255)
         )
     `;
     db.query(sql, (err) => {
@@ -21,7 +22,7 @@ const createNewsTable = () => {
 };
 
 // ✅ Function to Insert News Article
-const insertNews = (title, description, url, source, publishedAt, imageUrl, relatedTickers) => {
+const insertNews = (title, description, url, source, publishedAt, imageUrl, relatedTickers, sentiment) => {
     const checkSql = "SELECT COUNT(*) AS count FROM news WHERE url = ?";
     
     db.query(checkSql, [url], (err, results) => {
@@ -38,10 +39,10 @@ const insertNews = (title, description, url, source, publishedAt, imageUrl, rela
         // ✅ Insert with related tickers
         const sql = `
             INSERT INTO news 
-            (title, description, url, source, published_at, image_url, related_tickers) 
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            (title, description, url, source, published_at, image_url, related_tickers, sentiment) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         `;
-        db.query(sql, [title, description, url, source, publishedAt, imageUrl, relatedTickers], (err) => {
+        db.query(sql, [title, description, url, source, publishedAt, imageUrl, relatedTickers, sentiment], (err) => {
             if (err) console.error("Insert News Failed:", err);
         });
     });
